@@ -1,0 +1,28 @@
+app.post('/paystack/pay', (req, res) => {
+    // Extracting necessary fields from the form submission
+    const form = _.pick(req.body, ['amount', 'email', 'full_name']);
+    
+    // Adding full_name to metadata for the payment
+    form.metadata = {
+        full_name: form.full_name
+    };
+    
+    // Converting amount to kobo (as Paystack accepts amount in kobo)
+    form.amount *= 100;
+    
+    // Initializing payment with Paystack
+    initializePayment(form, (error, body) => {
+        if (error) {
+            // Handle errors if any
+            console.log(error);
+            // You can respond with an error page or a custom message here
+            return;
+        }
+        
+        // Parsing the response body to JSON
+        const response = JSON.parse(body);
+        
+        // Redirecting the user to the authorization URL provided by Paystack
+        res.redirect(response.data.authorization_url);
+    });
+});
